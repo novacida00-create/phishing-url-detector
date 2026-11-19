@@ -1,0 +1,129 @@
+{
+  "model": "Random Forest",
+  "fitur": [
+    "url_length",
+    "has_ip_address",
+    "dot_count",
+    "https_flag",
+    "url_entropy",
+    "token_count",
+    "subdomain_count",
+    "query_param_count",
+    "tld_length",
+    "path_length",
+    "has_hyphen_in_domain",
+    "number_of_digits",
+    "tld_popularity",
+    "suspicious_file_extension",
+    "domain_name_length",
+    "percentage_numeric_chars"
+  ],
+  "label": {
+    "0": "phishing",
+    "1": "legitimate"
+  },
+  "pembagian_data": {
+    "metode": "GroupShuffleSplit berdasarkan dua label terakhir domain",
+    "jumlah": {
+      "train": 81483,
+      "val": 10443,
+      "test": 8946,
+      "train_val": 91926
+    },
+    "random_state": 42
+  },
+  "audit_dataset": {
+    "baris_mentah": 101219,
+    "label_kosong": 1,
+    "url_duplikat": 346,
+    "kolom": [
+      "URL",
+      "url_length",
+      "has_ip_address",
+      "dot_count",
+      "https_flag",
+      "url_entropy",
+      "token_count",
+      "subdomain_count",
+      "query_param_count",
+      "tld_length",
+      "path_length",
+      "has_hyphen_in_domain",
+      "number_of_digits",
+      "tld_popularity",
+      "suspicious_file_extension",
+      "domain_name_length",
+      "percentage_numeric_chars",
+      "ClassLabel"
+    ],
+    "baris_setelah_pembersihan": 100872,
+    "phishing": 63492,
+    "legitimate": 37380,
+    "jumlah_domain": 53739
+  },
+  "metrik_validasi": {
+    "Random Forest": {
+      "accuracy": 0.9993296945322225,
+      "precision": 0.9988143631436315,
+      "recall": 1.0,
+      "f1": 0.999406829929667,
+      "roc_auc": 0.9999982840790663,
+      "false_negative_rate": 0.0,
+      "confusion_matrix": {
+        "true_phishing_predicted_phishing": 5897,
+        "true_phishing_predicted_legitimate": 0,
+        "true_legitimate_predicted_phishing": 7,
+        "true_legitimate_predicted_legitimate": 4539
+      }
+    },
+    "XGBoost": {
+      "accuracy": 0.9992339366082543,
+      "precision": 0.9989832231825114,
+      "recall": 0.9996608444972019,
+      "f1": 0.9993219189693168,
+      "roc_auc": 0.9999982467764374,
+      "false_negative_rate": 0.0003391555027980329,
+      "confusion_matrix": {
+        "true_phishing_predicted_phishing": 5895,
+        "true_phishing_predicted_legitimate": 2,
+        "true_legitimate_predicted_phishing": 6,
+        "true_legitimate_predicted_legitimate": 4540
+      }
+    },
+    "SVM": {
+      "accuracy": 0.9986593890644451,
+      "precision": 0.9993209981327449,
+      "recall": 0.9983042224860098,
+      "f1": 0.9988123515439431,
+      "roc_auc": 0.999980639935553,
+      "false_negative_rate": 0.0016957775139901645,
+      "confusion_matrix": {
+        "true_phishing_predicted_phishing": 5887,
+        "true_phishing_predicted_legitimate": 10,
+        "true_legitimate_predicted_phishing": 4,
+        "true_legitimate_predicted_legitimate": 4542
+      },
+      "catatan": "Dilatih pada 30.000 sampel data training."
+    }
+  },
+  "metrik_uji": {
+    "accuracy": 0.9992175273865415,
+    "precision": 0.9989299090422686,
+    "recall": 0.99982149232417,
+    "f1": 0.9993755018288875,
+    "roc_auc": 0.9999974376888636,
+    "false_negative_rate": 0.0001785076758300607,
+    "confusion_matrix": {
+      "true_phishing_predicted_phishing": 5601,
+      "true_phishing_predicted_legitimate": 1,
+      "true_legitimate_predicted_phishing": 6,
+      "true_legitimate_predicted_legitimate": 3338
+    }
+  },
+  "dataset": {
+    "nama": "LegitPhish Dataset, Version 2",
+    "doi": "10.17632/hx4m73v2sf.2",
+    "lisensi": "CC BY 4.0",
+    "cakupan": "global"
+  }
+}

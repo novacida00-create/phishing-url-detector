@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.DS_Store
+*.log
+.ipynb_checkpoints/
+
+# Dataset mentah dan hasil olahan tidak disimpan di repository
+dataset/raw/*
+dataset/processed/*
+!dataset/raw/.gitkeep
+!dataset/processed/.gitkeep
+
+# File model: commit hanya jika ukurannya masih wajar untuk deployment
+# models/*.joblib
