@@ -3,124 +3,74 @@
 {% block title %}Hasil Deteksi{% endblock %}
 
 {% block content %}
-<main class="container main-section result-page">
-  <div class="page-heading">
-    <span class="eyebrow">Hasil analisis</span>
-    <h1>Klasifikasi URL</h1>
-    <p>Berikut keputusan model dan faktor yang paling memengaruhinya.</p>
+<main class="wrap page">
+  <div class="page-head">
+    <h1>Hasil Deteksi</h1>
+    <p>Klasifikasi model dan penjelasan untuk URL yang diperiksa.</p>
   </div>
 
   {% if error %}
-  <div class="card result-card">
+  <section class="card">
     <div class="alert" role="alert">{{ error }}</div>
-    <div class="actions">
-      <a href="{{ url_for('index') }}" class="btn btn-secondary">Kembali</a>
-    </div>
-  </div>
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">Kembali</a>
+  </section>
   {% else %}
-  <section class="card result-card verdict {{ 'verdict--legitimate' if label == 'Legitimate' else '' }}">
-    <span class="verdict-icon" aria-hidden="true">
-      {% if label == 'Phishing' %}
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M10.3 4.3 2.5 18a2 2 0 0 0 1.7 3h15.6a2 2 0 0 0 1.7-3L13.7 4.3a2 2 0 0 0-3.4 0Z"/>
-        <path d="M12 9v4M12 17h.01"/>
-      </svg>
-      {% else %}
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 3 5 6v5c0 4.6 2.9 8.4 7 10 4.1-1.6 7-5.4 7-10V6l-7-3Z"/>
-        <path d="m9.2 12.2 1.9 1.9 3.8-3.8"/>
-      </svg>
-      {% endif %}
-    </span>
-    <div class="verdict-body">
-      <span class="eyebrow">Klasifikasi model</span>
-      <h2>{{ label }}</h2>
-      <p>
-        {% if label == 'Phishing' %}
-        URL ini memiliki karakteristik yang mirip dengan pola phishing pada data latih.
-        {% else %}
-        URL ini memiliki karakteristik yang mirip dengan URL legitimate pada data latih.
+  <section class="card">
+    <h2>Ringkasan</h2>
+    <table class="result-table">
+      <tbody>
+        <tr>
+          <th>URL</th>
+          <td>
+            <code id="checked-url">{{ url }}</code>
+            <button type="button" class="small-button" id="copy-url">Salin</button>
+          </td>
+        </tr>
+        <tr>
+          <th>Klasifikasi</th>
+          <td>
+            <span class="badge {{ 'badge-danger' if label == 'Phishing' else 'badge-success' }}">{{ label }}</span>
+          </td>
+        </tr>
+        {% if confidence is not none %}
+        <tr>
+          <th>Tingkat keyakinan</th>
+          <td>{{ '%.2f'|format(confidence * 100) }}%</td>
+        </tr>
         {% endif %}
-      </p>
-    </div>
-    {% if confidence is not none %}
-    <div class="verdict-score">
-      <strong>{{ '%.1f'|format(confidence * 100) }}%</strong>
-      <span>Tingkat keyakinan</span>
-    </div>
-    {% endif %}
+      </tbody>
+    </table>
   </section>
 
-  <section class="card result-card">
-    <h3 class="detail-title">URL yang diperiksa</h3>
-    <div class="url-box">
-      <code id="checked-url">{{ url }}</code>
-      <button type="button" class="icon-button" id="copy-url">Salin</button>
-    </div>
-  </section>
-
-  {% if confidence is not none %}
-  <section class="card result-card">
-    <h3 class="detail-title">Tingkat keyakinan model</h3>
-    <div class="meter-head">
-      <span>Probabilitas untuk kelas {{ label }}</span>
-      <strong>{{ '%.1f'|format(confidence * 100) }}%</strong>
-    </div>
-    <div class="meter {{ 'meter--legitimate' if label == 'Legitimate' else '' }}" role="img"
-         aria-label="Tingkat keyakinan {{ '%.1f'|format(confidence * 100) }} persen">
-      <span style="width: {{ '%.1f'|format(confidence * 100) }}%"></span>
-    </div>
-    <p class="meter-note">Nilai ini berasal dari probabilitas model, bukan dari pemeriksaan langsung terhadap isi website.</p>
-  </section>
-  {% endif %}
-
-  <section class="card result-card">
-    <h3 class="detail-title">Faktor yang memengaruhi prediksi</h3>
-    <p class="result-note">
+  <section class="card">
+    <h2>Faktor yang memengaruhi prediksi</h2>
+    <p class="muted">
       Nilai positif mendukung kelas {{ label }}, nilai negatif menentangnya.
-      Panjang batang menunjukkan besarnya kontribusi kelima fitur teratas menurut SHAP.
+      Berikut lima fitur dengan kontribusi terbesar menurut SHAP.
     </p>
+
     {% if shap_items %}
-    {% set ns = namespace(max_abs=0.0001) %}
-    {% for item in shap_items %}
-      {% if item.impact|abs > ns.max_abs %}{% set ns.max_abs = item.impact|abs %}{% endif %}
-    {% endfor %}
-    <table class="shap-table">
+    <table class="data-table">
       <thead>
         <tr><th>Fitur</th><th>Nilai</th><th>Kontribusi</th></tr>
       </thead>
       <tbody>
         {% for item in shap_items %}
-        {% set width = (item.impact|abs / ns.max_abs * 100)|round(1) %}
         <tr>
-          <td class="feature-name">{{ item.name }}</td>
-          <td class="feature-value">{{ '%.2f'|format(item.value) }}</td>
-          <td class="impact-cell">
-            <div class="impact-row">
-              <div class="impact-bar {{ 'impact-bar--negative' if item.impact < 0 else '' }}" style="--w: {{ width }}%">
-                <span></span>
-              </div>
-              <span class="impact-value">{{ '+' if item.impact > 0 else '' }}{{ '%.3f'|format(item.impact) }}</span>
-            </div>
-          </td>
+          <td>{{ item.name }}</td>
+          <td>{{ '%.2f'|format(item.value) }}</td>
+          <td class="{{ 'positive' if item.impact > 0 else 'negative' }}">{{ '+' if item.impact > 0 else '' }}{{ '%.3f'|format(item.impact) }}</td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
     {% else %}
-    <p class="result-note">Penjelasan untuk prediksi ini belum tersedia.</p>
+    <p class="muted">Penjelasan untuk prediksi ini belum tersedia.</p>
     {% endif %}
   </section>
 
-  <div class="actions">
-    <a href="{{ url_for('index') }}" class="btn btn-primary">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/>
-      </svg>
-      Periksa URL lain
-    </a>
-    <a href="{{ url_for('index') }}" class="btn btn-secondary">Kembali ke beranda</a>
-  </div>
+  <p class="note">Hasil model merupakan indikasi berbasis data, bukan jaminan keamanan absolut.</p>
+  <a href="{{ url_for('index') }}" class="btn btn-secondary">Periksa URL lain</a>
   {% endif %}
 </main>
 {% endblock %}

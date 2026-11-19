@@ -3,35 +3,23 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Klasifikasi URL phishing dengan machine learning dan penjelasan SHAP.">
   <title>{% block title %}Deteksi URL Phishing{% endblock %}</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-  <header class="site-header">
-    <nav class="container nav" aria-label="Navigasi utama">
-      <a class="brand" href="{{ url_for('index') }}">
-        <span class="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 3 5 6v5c0 4.6 2.9 8.4 7 10 4.1-1.6 7-5.4 7-10V6l-7-3Z"/>
-            <path d="m9.2 12.2 1.9 1.9 3.8-3.8"/>
-          </svg>
-        </span>
-        <span>Phishing Guard</span>
-      </a>
-      <span class="nav-tag">Machine Learning &middot; SHAP</span>
-    </nav>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="topbar-title" href="{{ url_for('index') }}">Deteksi URL Phishing</a>
+      <span class="topbar-note">Demo Skripsi</span>
+    </div>
   </header>
 
   {% block content %}{% endblock %}
 
-  <footer class="site-footer">
-    <div class="container footer-inner">
-      <p>Dataset LegitPhish v2 &middot; hasil model bersifat indikatif, bukan jaminan keamanan absolut.</p>
-      <p>Analisis hanya membaca string URL, tidak mengunjungi alamat tersebut.</p>
+  <footer class="footer">
+    <div class="wrap">
+      <p>Hasil prediksi bersifat indikatif dan tidak menggantikan pemeriksaan manual.</p>
+      <p>Dataset: LegitPhish Dataset Version 2.</p>
     </div>
   </footer>
 

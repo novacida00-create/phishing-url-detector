@@ -1,4 +1,3 @@
-// Validasi ringan di browser. Validasi tetap dilakukan di server.
 const form = document.getElementById("url-form");
 const input = document.getElementById("url");
 
@@ -15,18 +14,10 @@ if (form && input) {
     input.value = value;
 
     const button = document.getElementById("submit-button");
-    const label = button?.querySelector("span");
-    if (button && label) {
-      label.textContent = "Memeriksa…";
+    if (button) {
       button.disabled = true;
+      button.textContent = "Memeriksa…";
     }
-  });
-
-  document.querySelectorAll("[data-example]").forEach((chip) => {
-    chip.addEventListener("click", () => {
-      input.value = chip.dataset.example;
-      input.focus();
-    });
   });
 }
 

@@ -1,116 +1,62 @@
 {% extends "base.html" %}
 
 {% block content %}
-<section class="hero">
-  <div class="container hero-inner">
-    <div class="hero-copy">
-      <span class="eyebrow">Sistem deteksi URL</span>
-      <h1>Kenali URL phishing <span>sebelum terlambat.</span></h1>
-      <p class="hero-lead">
-        Masukkan sebuah alamat website. Model machine learning akan mengklasifikasikannya,
-        lalu SHAP menunjukkan fitur apa yang paling berpengaruh terhadap keputusan tersebut.
-      </p>
-      <div class="hero-meta">
-        <span class="hero-chip">16 fitur URL</span>
-        <span class="hero-chip">Random Forest</span>
-        <span class="hero-chip">Penjelasan SHAP</span>
-      </div>
-    </div>
-    <div class="hero-art" aria-hidden="true">
-      <svg viewBox="0 0 260 260" fill="none">
-        <circle cx="130" cy="130" r="112" stroke="#38BDF8" stroke-opacity=".18" stroke-width="1.5"/>
-        <circle cx="130" cy="130" r="88" stroke="#38BDF8" stroke-opacity=".28" stroke-width="1.5" stroke-dasharray="5 8"/>
-        <circle cx="130" cy="130" r="64" fill="#1E3A8A" fill-opacity=".28"/>
-        <path d="M130 52 76 74v48c0 33 21 60 54 72 33-12 54-39 54-72V74l-54-22Z" fill="#2563EB" fill-opacity=".22" stroke="#60A5FA" stroke-width="2"/>
-        <path d="m107 130 16 16 32-34" stroke="#67E8F9" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-        <rect x="30" y="105" width="52" height="26" rx="13" fill="#0F172A" stroke="#38BDF8" stroke-opacity=".5"/>
-        <path d="M44 118h24" stroke="#7DD3FC" stroke-width="3" stroke-linecap="round"/>
-        <rect x="178" y="105" width="52" height="26" rx="13" fill="#0F172A" stroke="#38BDF8" stroke-opacity=".5"/>
-        <path d="M192 118h24" stroke="#7DD3FC" stroke-width="3" stroke-linecap="round"/>
-      </svg>
-    </div>
+<main class="wrap page">
+  <div class="page-head">
+    <h1>Deteksi URL Phishing</h1>
+    <p>Masukkan alamat website untuk diklasifikasikan sebagai phishing atau legitimate.</p>
   </div>
-</section>
 
-<main class="container main-section home-section">
-  <div class="card form-panel">
-    <div class="panel-heading">
-      <h2>Periksa sebuah URL</h2>
-      <p>Masukkan alamat yang ingin Anda analisis. Prosesnya hanya membaca teks URL.</p>
-    </div>
+  <div class="columns">
+    <section class="card">
+      <h2>Tentang aplikasi</h2>
+      <p>
+        Aplikasi ini dibuat sebagai demo klasifikasi URL phishing. Model dilatih memakai
+        dataset LegitPhish v2 dengan 16 fitur yang dihitung langsung dari string URL.
+      </p>
+      <p>
+        Website tidak mengunjungi alamat yang dimasukkan. Yang dianalisis hanya pola
+        teksnya, seperti panjang URL, karakter khusus, dan struktur domain.
+      </p>
 
-    {% if error %}
-    <div class="alert" role="alert">{{ error }}</div>
-    {% endif %}
+      <table class="info-table">
+        <tbody>
+          <tr><th>Dataset</th><td>LegitPhish v2</td></tr>
+          <tr><th>Fitur</th><td>16 fitur leksikal dan struktural</td></tr>
+          <tr><th>Model</th><td>Random Forest</td></tr>
+          <tr><th>Penjelasan</th><td>SHAP (lima fitur teratas)</td></tr>
+        </tbody>
+      </table>
+    </section>
 
-    <form method="post" action="{{ url_for('predict') }}" id="url-form">
-      <label for="url" class="field-label">URL yang ingin diperiksa</label>
-      <div class="input-wrap">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M10 13a5 5 0 0 0 7.1 0l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1"/>
-          <path d="M14 11a5 5 0 0 0-7.1 0l-2 2a5 5 0 0 0 7.1 7.1l1.1-1.1"/>
-        </svg>
-        <input type="text" class="form-control" id="url" name="url"
+    <section class="card">
+      <h2>Periksa URL</h2>
+
+      {% if error %}
+      <div class="alert" role="alert">{{ error }}</div>
+      {% endif %}
+
+      <form method="post" action="{{ url_for('predict') }}" id="url-form">
+        <label for="url">URL</label>
+        <input type="text" id="url" name="url" class="input"
                placeholder="https://contoh.com/path" required maxlength="2048"
                value="{{ url or '' }}">
-      </div>
-      <div class="form-text">
-        Contoh: <code>https://www.wikipedia.org/wiki/Phishing</code> atau
-        <code>http://login-verify.account-update.example.com/signin</code>
-      </div>
-
-      <div class="examples">
-        <span class="examples-label">Coba contoh:</span>
-        <button type="button" class="example-chip" data-example="https://www.wikipedia.org/wiki/Phishing">wikipedia.org/wiki/Phishing</button>
-        <button type="button" class="example-chip" data-example="http://login-verify.account-update.example.com/signin">login-verify.account-update</button>
-      </div>
-
-      <div class="form-actions">
-        <button type="submit" class="btn btn-primary" id="submit-button">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M12 3v13"/><path d="m7 11 5 5 5-5"/><path d="M5 21h14"/>
-          </svg>
-          <span>Periksa URL</span>
-        </button>
-        <span class="form-note">Backend tidak mengunjungi alamat yang Anda masukkan.</span>
-      </div>
-    </form>
+        <p class="hint">
+          Contoh: <code>https://www.wikipedia.org/wiki/Phishing</code><br>
+          <code>http://login-verify.account-update.example.com/signin</code>
+        </p>
+        <button type="submit" class="btn" id="submit-button">Periksa URL</button>
+      </form>
+    </section>
   </div>
 
-  <div class="feature-strip">
-    <div class="feature-item">
-      <span class="feature-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>
-        </svg>
-      </span>
-      <div>
-        <h3>Aman dicoba</h3>
-        <p>URL hanya dianalisis sebagai teks, tidak dibuka atau dikunjungi.</p>
-      </div>
-    </div>
-    <div class="feature-item">
-      <span class="feature-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>
-        </svg>
-      </span>
-      <div>
-        <h3>16 fitur leksikal</h3>
-        <p>Pola yang sama dipakai saat melatih model dan saat prediksi.</p>
-      </div>
-    </div>
-    <div class="feature-item">
-      <span class="feature-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="9"/><path d="M12 8v5l3 2"/>
-        </svg>
-      </span>
-      <div>
-        <h3>Ada penjelasannya</h3>
-        <p>Lima fitur teratas ditampilkan bersama kontribusinya dari SHAP.</p>
-      </div>
-    </div>
-  </div>
+  <section class="card">
+    <h2>Cara kerja</h2>
+    <ol class="steps">
+      <li>URL yang dimasukkan diubah menjadi 16 fitur angka.</li>
+      <li>Model Random Forest memprediksi kelas phishing atau legitimate.</li>
+      <li>SHAP menampilkan fitur yang paling memengaruhi prediksi tersebut.</li>
+    </ol>
+  </section>
 </main>
 {% endblock %}
