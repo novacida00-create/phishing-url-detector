@@ -1,77 +1,126 @@
-<!doctype html>
-<html lang="id">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Hasil Deteksi</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body class="bg-light">
-  <main class="container py-5">
-    <div class="row justify-content-center">
-      <div class="col-lg-8">
-        <h1 class="h3 mb-4">Hasil Deteksi</h1>
+{% extends "base.html" %}
 
-        {% if error %}
-        <div class="alert alert-warning" role="alert">{{ error }}</div>
-        {% else %}
-        <div class="card shadow-sm mb-4">
-          <div class="card-body">
-            <p class="small text-muted mb-1">URL</p>
-            <p class="text-break mb-3"><code>{{ url }}</code></p>
+{% block title %}Hasil Deteksi{% endblock %}
 
-            <p class="small text-muted mb-1">Klasifikasi</p>
-            <p class="mb-3">
-              {% if label == 'Phishing' %}
-                <span class="badge bg-danger fs-6">{{ label }}</span>
-              {% else %}
-                <span class="badge bg-success fs-6">{{ label }}</span>
-              {% endif %}
-            </p>
+{% block content %}
+<main class="container main-section result-page">
+  <div class="page-heading">
+    <span class="eyebrow">Hasil analisis</span>
+    <h1>Klasifikasi URL</h1>
+    <p>Berikut keputusan model dan faktor yang paling memengaruhinya.</p>
+  </div>
 
-            {% if confidence is not none %}
-            <p class="small text-muted mb-1">Tingkat keyakinan</p>
-            <p class="mb-0">{{ '%.2f'|format(confidence * 100) }}%</p>
-            {% endif %}
-          </div>
-        </div>
-
-        <div class="card shadow-sm mb-4">
-          <div class="card-body">
-            <h2 class="h5">Faktor yang memengaruhi prediksi</h2>
-            <p class="small text-muted">
-              Nilai positif mendukung kelas {{ label }}, nilai negatif menentangnya.
-              Diambil dari nilai SHAP untuk lima fitur teratas.
-            </p>
-            {% if shap_items %}
-            <table class="table table-sm mt-3">
-              <thead>
-                <tr><th>Fitur</th><th>Nilai</th><th>Kontribusi</th></tr>
-              </thead>
-              <tbody>
-                {% for item in shap_items %}
-                <tr>
-                  <td>{{ item.name }}</td>
-                  <td>{{ '%.2f'|format(item.value) }}</td>
-                  <td>{{ '+' if item.impact > 0 else '' }}{{ '%.3f'|format(item.impact) }}</td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-            {% else %}
-            <p class="text-muted mb-0">Penjelasan untuk prediksi ini belum tersedia.</p>
-            {% endif %}
-          </div>
-        </div>
-        {% endif %}
-
-        <p class="small text-muted">
-          Hasil model merupakan indikasi berbasis data, bukan jaminan keamanan absolut.
-        </p>
-        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">Periksa URL lain</a>
-      </div>
+  {% if error %}
+  <div class="card result-card">
+    <div class="alert" role="alert">{{ error }}</div>
+    <div class="actions">
+      <a href="{{ url_for('index') }}" class="btn btn-secondary">Kembali</a>
     </div>
-  </main>
-</body>
-</html>
+  </div>
+  {% else %}
+  <section class="card result-card verdict {{ 'verdict--legitimate' if label == 'Legitimate' else '' }}">
+    <span class="verdict-icon" aria-hidden="true">
+      {% if label == 'Phishing' %}
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M10.3 4.3 2.5 18a2 2 0 0 0 1.7 3h15.6a2 2 0 0 0 1.7-3L13.7 4.3a2 2 0 0 0-3.4 0Z"/>
+        <path d="M12 9v4M12 17h.01"/>
+      </svg>
+      {% else %}
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3 5 6v5c0 4.6 2.9 8.4 7 10 4.1-1.6 7-5.4 7-10V6l-7-3Z"/>
+        <path d="m9.2 12.2 1.9 1.9 3.8-3.8"/>
+      </svg>
+      {% endif %}
+    </span>
+    <div class="verdict-body">
+      <span class="eyebrow">Klasifikasi model</span>
+      <h2>{{ label }}</h2>
+      <p>
+        {% if label == 'Phishing' %}
+        URL ini memiliki karakteristik yang mirip dengan pola phishing pada data latih.
+        {% else %}
+        URL ini memiliki karakteristik yang mirip dengan URL legitimate pada data latih.
+        {% endif %}
+      </p>
+    </div>
+    {% if confidence is not none %}
+    <div class="verdict-score">
+      <strong>{{ '%.1f'|format(confidence * 100) }}%</strong>
+      <span>Tingkat keyakinan</span>
+    </div>
+    {% endif %}
+  </section>
+
+  <section class="card result-card">
+    <h3 class="detail-title">URL yang diperiksa</h3>
+    <div class="url-box">
+      <code id="checked-url">{{ url }}</code>
+      <button type="button" class="icon-button" id="copy-url">Salin</button>
+    </div>
+  </section>
+
+  {% if confidence is not none %}
+  <section class="card result-card">
+    <h3 class="detail-title">Tingkat keyakinan model</h3>
+    <div class="meter-head">
+      <span>Probabilitas untuk kelas {{ label }}</span>
+      <strong>{{ '%.1f'|format(confidence * 100) }}%</strong>
+    </div>
+    <div class="meter {{ 'meter--legitimate' if label == 'Legitimate' else '' }}" role="img"
+         aria-label="Tingkat keyakinan {{ '%.1f'|format(confidence * 100) }} persen">
+      <span style="width: {{ '%.1f'|format(confidence * 100) }}%"></span>
+    </div>
+    <p class="meter-note">Nilai ini berasal dari probabilitas model, bukan dari pemeriksaan langsung terhadap isi website.</p>
+  </section>
+  {% endif %}
+
+  <section class="card result-card">
+    <h3 class="detail-title">Faktor yang memengaruhi prediksi</h3>
+    <p class="result-note">
+      Nilai positif mendukung kelas {{ label }}, nilai negatif menentangnya.
+      Panjang batang menunjukkan besarnya kontribusi kelima fitur teratas menurut SHAP.
+    </p>
+    {% if shap_items %}
+    {% set ns = namespace(max_abs=0.0001) %}
+    {% for item in shap_items %}
+      {% if item.impact|abs > ns.max_abs %}{% set ns.max_abs = item.impact|abs %}{% endif %}
+    {% endfor %}
+    <table class="shap-table">
+      <thead>
+        <tr><th>Fitur</th><th>Nilai</th><th>Kontribusi</th></tr>
+      </thead>
+      <tbody>
+        {% for item in shap_items %}
+        {% set width = (item.impact|abs / ns.max_abs * 100)|round(1) %}
+        <tr>
+          <td class="feature-name">{{ item.name }}</td>
+          <td class="feature-value">{{ '%.2f'|format(item.value) }}</td>
+          <td class="impact-cell">
+            <div class="impact-row">
+              <div class="impact-bar {{ 'impact-bar--negative' if item.impact < 0 else '' }}" style="--w: {{ width }}%">
+                <span></span>
+              </div>
+              <span class="impact-value">{{ '+' if item.impact > 0 else '' }}{{ '%.3f'|format(item.impact) }}</span>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="result-note">Penjelasan untuk prediksi ini belum tersedia.</p>
+    {% endif %}
+  </section>
+
+  <div class="actions">
+    <a href="{{ url_for('index') }}" class="btn btn-primary">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/>
+      </svg>
+      Periksa URL lain
+    </a>
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">Kembali ke beranda</a>
+  </div>
+  {% endif %}
+</main>
+{% endblock %}
