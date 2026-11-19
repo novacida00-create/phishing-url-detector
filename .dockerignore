@@ -1,0 +1,12 @@
+.git
+.gitignore
+__pycache__
+*.pyc
+.ipynb_checkpoints
+notebooks
+dataset/raw/*
+dataset/processed/*
+!dataset/raw/.gitkeep
+!dataset/processed/.gitkeep
+.env
+*.log
