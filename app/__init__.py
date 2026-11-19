@@ -1,7 +1,7 @@
 """Paket aplikasi Flask untuk deteksi URL phishing.
 
-Mengekspos `app` sehingga `gunicorn app:app` (Procfile) bekerja, karena `app`
-di sini merujuk ke paket ini, bukan berkas app.py di akar proyek.
+Mengekspos `app` supaya `waitress-serve app:app` bisa dipakai. Nama paket ini
+sengaja `app`, sehingga route tetap berada di modul `app.web`.
 """
 from app.web import app  # noqa: F401
 

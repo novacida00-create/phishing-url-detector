@@ -84,19 +84,22 @@ Angka lengkap ada di `models/metadata.json` dan `models/metrics.csv`.
 
 ## deployment
 
-Cara paling mudah adalah **Vercel**:
+Aplikasi ini sudah live di https://phishing-url-detector-rust.vercel.app
+
+Cara paling mudah untuk deploy ulang adalah **Vercel**:
 
 1. Buka https://vercel.com/new lalu import repository GitHub ini.
-2. Biarkan pengaturan default. Vercel mendeteksi Flask lewat `server.py` dan `requirements.txt`.
+2. Biarkan pengaturan default. Vercel mendeteksi Flask lewat `server.py`.
 3. Klik **Deploy**. Tidak perlu environment variable.
 
-Berkas `.python-version` menentukan Python 3.12, sedangkan `vercel.json` membuang dataset,
+Dependensi runtime dideklarasikan di `pyproject.toml` dan `requirements.txt`. Berkas
+`.python-version` menentukan Python 3.12, sedangkan `vercel.json` membuang dataset,
 notebook, dan cache dari bundle supaya ukurannya tetap di bawah batas function Vercel.
 
 Kalau tetap memakai Render, `Procfile` berisi:
 
 ```
-web: waitress-serve --port=$PORT app:app
+web: waitress-serve --port=$PORT app.web:app
 ```
 
 Pada Render pilih compute plan **Free** dan env var `PYTHON_VERSION=3.12.0`. `waitress` dipakai
