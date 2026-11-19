@@ -220,8 +220,11 @@ code,
   position: relative;
   z-index: 2;
   flex: 1;
-  margin-top: -72px;
   padding-bottom: 64px;
+}
+
+.home-section {
+  margin-top: -72px;
 }
 
 .card {
