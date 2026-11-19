@@ -47,9 +47,11 @@ phishing-url-detector/
 ```bash
 python -m venv .venv
 .venv\Scripts\activate
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 python app.py
 ```
+
+`requirements-dev.txt` memuat semua paket untuk training dan notebook. Untuk deployment yang hanya menjalankan website, cukup `requirements.txt`—ini sengaja dirampingkan supaya ukuran bundle Vercel tetap di bawah batas.
 
 Buka `http://127.0.0.1:5000`, masukkan URL, lalu tekan **Periksa URL**.
 
@@ -81,18 +83,23 @@ Angka lengkap ada di `models/metadata.json` dan `models/metrics.csv`.
 
 ## deployment
 
-`Procfile` sudah berisi:
+Cara paling mudah adalah **Vercel**:
+
+1. Buka https://vercel.com/new lalu import repository GitHub ini.
+2. Biarkan pengaturan default. Vercel mendeteksi Flask lewat `app.py` dan `requirements.txt`.
+3. Klik **Deploy**. Tidak perlu environment variable.
+
+Berkas `.python-version` menentukan Python 3.12, sedangkan `vercel.json` membuang dataset,
+notebook, dan cache dari bundle supaya ukurannya tetap di bawah batas function Vercel.
+
+Kalau tetap memakai Render, `Procfile` berisi:
 
 ```
-web: gunicorn app:app
+web: waitress-serve --port=$PORT app:app
 ```
 
-`waitress` dipakai sebagai server WSGI produksi. Server ini murni Python, jadi bisa dijalankan
-baik di Linux (Render) maupun di Windows saat pengujian lokal.
-
-Langkah singkat: daftarkan repository ke Render, pilih Web Service, gunakan Python,
-isi build command dengan `pip install -r requirements.txt` dan start command dengan
-`waitress-serve --port=$PORT app:app`. Setelah aktif, coba beberapa URL untuk memastikan form dan hasil prediksi tampil.
+Pada Render pilih compute plan **Free** dan env var `PYTHON_VERSION=3.12.0`. `waitress` dipakai
+sebagai server WSGI karena murni Python dan juga bisa diuji di Windows.
 
 Dataset mentah sengaja tidak dimasukkan ke repository publik. Berkas model berukuran sekitar 2,4 MB,
 masih wajar untuk paket gratis, tetapi perlu diperiksa kembali terhadap batas layanan hosting.
