@@ -3,18 +3,54 @@
 {% block title %}Hasil Deteksi{% endblock %}
 
 {% block content %}
-<main class="wrap page">
-  <div class="page-head">
+<section class="banner banner-short">
+  <div class="wrap">
+    <span class="banner-label">Hasil analisis</span>
     <h1>Hasil Deteksi</h1>
     <p>Klasifikasi model dan penjelasan untuk URL yang diperiksa.</p>
   </div>
+</section>
 
+<main class="wrap page">
   {% if error %}
   <section class="card">
     <div class="alert" role="alert">{{ error }}</div>
     <a href="{{ url_for('index') }}" class="btn btn-secondary">Kembali</a>
   </section>
   {% else %}
+  <section class="verdict {{ 'verdict-success' if label == 'Legitimate' else '' }}">
+    <span class="verdict-icon" aria-hidden="true">
+      {% if label == 'Phishing' %}
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M10.3 4.3 2.6 18a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 4.3a2 2 0 0 0-3.4 0Z"/>
+        <path d="M12 9v4M12 17h.01"/>
+      </svg>
+      {% else %}
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3 5 6v5c0 4.5 2.8 8.3 7 10 4.2-1.7 7-5.5 7-10V6l-7-3Z"/>
+        <path d="m9 12 2 2 4-4"/>
+      </svg>
+      {% endif %}
+    </span>
+    <div class="verdict-body">
+      <span class="verdict-label">Klasifikasi</span>
+      <strong>{{ label }}</strong>
+      <span class="verdict-desc">
+        {% if label == 'Phishing' %}
+        URL memiliki karakteristik yang mirip pola phishing pada data latih.
+        {% else %}
+        URL memiliki karakteristik yang mirip URL legitimate pada data latih.
+        {% endif %}
+      </span>
+    </div>
+    {% if confidence is not none %}
+    <div class="verdict-score">
+      <strong>{{ '%.2f'|format(confidence * 100) }}%</strong>
+      <span>keyakinan</span>
+    </div>
+    {% endif %}
+  </section>
+
   <section class="card">
     <h2>Ringkasan</h2>
     <table class="result-table">
@@ -59,7 +95,10 @@
         <tr>
           <td>{{ item.name }}</td>
           <td>{{ '%.2f'|format(item.value) }}</td>
-          <td class="{{ 'positive' if item.impact > 0 else 'negative' }}">{{ '+' if item.impact > 0 else '' }}{{ '%.3f'|format(item.impact) }}</td>
+          <td class="{{ 'positive' if item.impact > 0 else 'negative' }}">
+            <span class="arrow">{{ '&uarr;' if item.impact > 0 else '&darr;' }}</span>
+            {{ '+' if item.impact > 0 else '' }}{{ '%.3f'|format(item.impact) }}
+          </td>
         </tr>
         {% endfor %}
       </tbody>

@@ -1,12 +1,22 @@
 {% extends "base.html" %}
 
 {% block content %}
-<main class="wrap page">
-  <div class="page-head">
-    <h1>Deteksi URL Phishing</h1>
-    <p>Masukkan alamat website untuk diklasifikasikan sebagai phishing atau legitimate.</p>
+<section class="banner">
+  <div class="wrap banner-inner">
+    <div>
+      <span class="banner-label">Klasifikasi URL &amp; penjelasan model</span>
+      <h1>Deteksi URL Phishing</h1>
+      <p>Masukkan alamat website untuk dianalisis berdasarkan fitur teks URL.</p>
+    </div>
+    <div class="banner-meta">
+      <div><strong>16</strong><span>fitur URL</span></div>
+      <div><strong>RF</strong><span>model terpilih</span></div>
+      <div><strong>5</strong><span>fitur dijelaskan</span></div>
+    </div>
   </div>
+</section>
 
+<main class="wrap page">
   <div class="columns">
     <section class="card">
       <h2>Tentang aplikasi</h2>
@@ -29,7 +39,7 @@
       </table>
     </section>
 
-    <section class="card">
+    <section class="card card-accent">
       <h2>Periksa URL</h2>
 
       {% if error %}
