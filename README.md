@@ -36,7 +36,8 @@ phishing-url-detector/
 │   ├── static/
 │   ├── feature_extraction.py
 │   └── web.py
-├── app.py
+├── run_local.py
+├── server.py
 ├── train_model.py
 ├── requirements.txt
 └── Procfile
@@ -48,7 +49,7 @@ phishing-url-detector/
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements-dev.txt
-python app.py
+python run_local.py
 ```
 
 `requirements-dev.txt` memuat semua paket untuk training dan notebook. Untuk deployment yang hanya menjalankan website, cukup `requirements.txt`—ini sengaja dirampingkan supaya ukuran bundle Vercel tetap di bawah batas.
@@ -86,7 +87,7 @@ Angka lengkap ada di `models/metadata.json` dan `models/metrics.csv`.
 Cara paling mudah adalah **Vercel**:
 
 1. Buka https://vercel.com/new lalu import repository GitHub ini.
-2. Biarkan pengaturan default. Vercel mendeteksi Flask lewat `app.py` dan `requirements.txt`.
+2. Biarkan pengaturan default. Vercel mendeteksi Flask lewat `server.py` dan `requirements.txt`.
 3. Klik **Deploy**. Tidak perlu environment variable.
 
 Berkas `.python-version` menentukan Python 3.12, sedangkan `vercel.json` membuang dataset,
