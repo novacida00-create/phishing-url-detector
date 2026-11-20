@@ -1,7 +1,7 @@
 [project]
 name = "phishing-url-detector"
 version = "1.0.0"
-description = "Aplikasi deteksi URL phishing dengan model Random Forest dan SHAP"
+description = "Aplikasi deteksi URL phishing dengan model XGBoost dan SHAP"
 requires-python = ">=3.12"
 dependencies = [
     "Flask==3.0.3",
@@ -11,6 +11,7 @@ dependencies = [
     "scikit-learn==1.7.2",
     "shap==0.54.1",
     "waitress==3.0.2",
+    "xgboost==3.4.1",
 ]
 
 [tool.vercel]
