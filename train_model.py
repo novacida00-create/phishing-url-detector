@@ -28,6 +28,40 @@ RAW_CSV = ROOT / "dataset" / "raw" / "LegitPhish Dataset" / "url_features_extrac
 PROCESSED_DIR = ROOT / "dataset" / "processed"
 MODEL_DIR = ROOT / "models"
 
+# URL legitimate terverifikasi yang ditambahkan ke data latih. Dataset LegitPhish
+# tidak memuat domain korporat Indonesia seperti astra.co.id, sehingga model
+# sebelumnya memberi false positive pada URL resmi tersebut. Penambahan ini hanya
+# masuk ke train/train_val, tidak ke data validasi maupun data uji.
+TAMBAHAN_LEGITIMATE_URLS = [
+    "https://career.astra.co.id/",
+    "https://career.astra.co.id",
+    "http://career.astra.co.id/",
+    "https://www.astra.co.id/",
+    "https://astra.co.id/",
+    "https://career.astra.co.id/jobs",
+    "https://career.astra.co.id/candidate",
+    "https://www.astra.co.id/career",
+    "https://www.danamon.co.id/",
+    "https://www.bca.co.id/",
+    "https://www.bni.co.id/",
+    "https://www.bri.co.id/",
+    "https://www.telkom.co.id/",
+    "https://www.pln.co.id/",
+    "https://www.kemenkeu.go.id/",
+    "https://www.kominfo.go.id/",
+    "https://www.bps.go.id/",
+    "https://www.tokopedia.com/",
+    "https://www.blibli.com/",
+    "https://www.bukalapak.com/",
+    "https://www.gojek.com/",
+    "https://www.truemoney.co.id/",
+    "https://www.jagajaga.co.id/",
+    "https://www.erlangga.co.id/",
+    "https://www.mazda.co.id/",
+    "https://www.kisi.co.id/",
+    "https://www.kubuku.co.id/",
+]
+
 
 def domain_group(url):
     """Ambil dua label terakhir dari host sebagai pengelompok domain."""
@@ -158,10 +192,27 @@ def main():
 
     X, y, groups, audit = load_data()
     idx = split_data(X, y, groups)
-    print("Audit:", json.dumps(audit, indent=2))
-    print("Ukuran split:", {k: len(v) for k, v in idx.items()})
 
-    X_train, y_train = X.iloc[idx["train"]], y.iloc[idx["train"]]
+    # Tambahkan contoh legitimate terverifikasi hanya ke data latih.
+    X_tambahan = extract_feature_dataframe(pd.Series(TAMBAHAN_LEGITIMATE_URLS))
+    y_tambahan = pd.Series([1] * len(TAMBAHAN_LEGITIMATE_URLS), dtype=int)
+    groups_tambahan = pd.Series([domain_group(url) for url in TAMBAHAN_LEGITIMATE_URLS])
+    offset = len(X)
+    indeks_tambahan = np.arange(offset, offset + len(X_tambahan))
+
+    X_gabung = pd.concat([X, X_tambahan], ignore_index=True)
+    y_gabung = pd.concat([y.reset_index(drop=True), y_tambahan], ignore_index=True)
+    groups_gabung = pd.concat([groups.reset_index(drop=True), groups_tambahan], ignore_index=True)
+
+    idx_latih = dict(idx)
+    idx_latih["train"] = np.concatenate([idx["train"], indeks_tambahan])
+    idx_latih["train_val"] = np.concatenate([idx["train_val"], indeks_tambahan])
+
+    audit["augmentasi_legitimate"] = len(TAMBAHAN_LEGITIMATE_URLS)
+    print("Audit:", json.dumps(audit, indent=2))
+    print("Ukuran split:", {k: len(v) for k, v in idx_latih.items()})
+
+    X_train, y_train = X_gabung.iloc[idx_latih["train"]], y_gabung.iloc[idx_latih["train"]]
     X_val, y_val = X.iloc[idx["val"]], y.iloc[idx["val"]]
 
     results = {}
@@ -187,15 +238,19 @@ def main():
 
     final_model = build_models()[best_name]
     if best_name == "SVM":
-        sample = X.iloc[idx["train_val"]].sample(n=min(30000, len(idx["train_val"])), random_state=42).index
-        final_model.fit(X.loc[sample], y.loc[sample])
+        sample = X_gabung.iloc[idx_latih["train_val"]].sample(
+            n=min(30000, len(idx_latih["train_val"])), random_state=42
+        ).index
+        final_model.fit(X_gabung.loc[sample], y_gabung.loc[sample])
     else:
-        final_model.fit(X.iloc[idx["train_val"]], y.iloc[idx["train_val"]])
+        final_model.fit(X_gabung.iloc[idx_latih["train_val"]], y_gabung.iloc[idx_latih["train_val"]])
 
     test_metrics = evaluate(final_model, X.iloc[idx["test"]], y.iloc[idx["test"]])
     print("Hasil data uji:", json.dumps(test_metrics, indent=2))
 
-    background = X.iloc[idx["train_val"]].sample(n=min(100, len(idx["train_val"])), random_state=42).reset_index(drop=True)
+    background = X_gabung.iloc[idx_latih["train_val"]].sample(
+        n=min(100, len(idx_latih["train_val"])), random_state=42
+    ).reset_index(drop=True)
     artifact = {
         "pipeline": final_model,
         "background": background,
@@ -213,13 +268,24 @@ def main():
         PROCESSED_DIR / "data_latih_contoh.csv", index=False
     )
 
+    tambahan_simpan = X_tambahan.copy()
+    tambahan_simpan.insert(0, "URL", TAMBAHAN_LEGITIMATE_URLS)
+    tambahan_simpan["ClassLabel"] = 1
+    tambahan_simpan["domain_group"] = groups_tambahan.values
+    tambahan_simpan.to_csv(PROCESSED_DIR / "data_tambahan_legitimate.csv", index=False)
+
     metadata = {
         "model": best_name,
         "fitur": FEATURE_NAMES,
         "label": {"0": "phishing", "1": "legitimate"},
         "pembagian_data": {
             "metode": "GroupShuffleSplit berdasarkan dua label terakhir domain",
-            "jumlah": {k: len(v) for k, v in idx.items()},
+            "jumlah": {
+                "train": len(idx_latih["train"]),
+                "val": len(idx["val"]),
+                "test": len(idx["test"]),
+                "train_val": len(idx_latih["train_val"]),
+            },
             "random_state": 42,
         },
         "audit_dataset": audit,
@@ -230,6 +296,11 @@ def main():
             "doi": "10.17632/hx4m73v2sf.2",
             "lisensi": "CC BY 4.0",
             "cakupan": "global",
+            "augmentasi_latih": {
+                "jumlah": len(TAMBAHAN_LEGITIMATE_URLS),
+                "label": 1,
+                "keterangan": "URL legitimate terverifikasi, hanya ditambahkan ke train dan train_val",
+            },
         },
     }
     (MODEL_DIR / "metadata.json").write_text(json.dumps(metadata, indent=2, ensure_ascii=False), encoding="utf-8")

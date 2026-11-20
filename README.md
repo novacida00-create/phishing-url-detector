@@ -8,7 +8,8 @@ Antarmuka web dibuat dengan Flask.
 
 - Dataset: LegitPhish Dataset Version 2, DOI `10.17632/hx4m73v2sf.2`, lisensi CC BY 4.0, cakupan global.
 - Fitur: 16 atribut leksikal/struktural yang dihitung dari string URL. Fungsi yang sama dipakai saat training dan saat pengguna mengetik URL di web.
-- Model yang dibandingkan: Random Forest, XGBoost, SVM. Model terpilih: **Random Forest**.
+- Model yang dibandingkan: Random Forest, XGBoost, SVM. Model terpilih: **XGBoost**.
+- Augmentasi: 27 URL legitimate terverifikasi ditambahkan hanya ke train/train_val; `https://career.astra.co.id/` kini diprediksi legitimate (99,90%).
 - Penjelasan: `TreeExplainer` dari SHAP, menampilkan lima fitur dengan kontribusi terbesar.
 - Web: tidak pernah mengunjungi URL yang dimasukkan pengguna; hanya menganalisis stringnya.
 
@@ -72,14 +73,14 @@ berdasarkan dua label terakhir domain supaya URL dari domain yang sama tidak boc
 
 | metrik | nilai |
 |---|---|
-| accuracy | 0.9992 |
-| precision (phishing) | 0.9989 |
+| accuracy | 0.9993 |
+| precision (phishing) | 0.9991 |
 | recall (phishing) | 0.9998 |
-| F1 (phishing) | 0.9994 |
+| F1 (phishing) | 0.9995 |
 | ROC-AUC | 0.999997 |
 | false negative rate | 0.00018 |
 
-Dari 5.602 URL phishing di data uji, satu di antaranya terklasifikasi sebagai legitimate.
+Dari 5.602 URL phishing di data uji, satu di antaranya terklasifikasi sebagai legitimate. Matriks kebingungan lengkap: TP 5.601, FN 1, FP 5, TN 3.339.
 Angka lengkap ada di `models/metadata.json` dan `models/metrics.csv`.
 
 ## deployment
