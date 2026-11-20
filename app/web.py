@@ -4,8 +4,8 @@ from urllib.parse import urlparse
 
 import joblib
 import numpy as np
-import shap
 from flask import Flask, render_template, request
+from xgboost import DMatrix
 
 from app.feature_extraction import FEATURE_LABELS, MAX_URL_LENGTH, extract_feature_dataframe
 
@@ -17,14 +17,11 @@ LABEL_MAP = {0: "Phishing", 1: "Legitimate"}
 
 ARTIFACT = None
 PIPELINE = None
-BACKGROUND = None
-_EXPLAINER = None
 
 if MODEL_PATH.exists():
     try:
         ARTIFACT = joblib.load(MODEL_PATH)
         PIPELINE = ARTIFACT["pipeline"]
-        BACKGROUND = ARTIFACT.get("background")
     except Exception as error:
         print("Gagal memuat model:", error)
 
@@ -48,33 +45,18 @@ def validate_url(raw):
     return candidate, None
 
 
-def get_explainer():
-    global _EXPLAINER
-    if _EXPLAINER is not None:
-        return _EXPLAINER
-
-    if "clf" in PIPELINE.named_steps and hasattr(PIPELINE.named_steps["clf"], "estimators_"):
-        _EXPLAINER = shap.TreeExplainer(PIPELINE.named_steps["clf"])
-    else:
-        _EXPLAINER = shap.Explainer(lambda values: PIPELINE.predict_proba(values)[:, 1], BACKGROUND)
-    return _EXPLAINER
-
-
 def explain_prediction(features, prediction):
-    """Ambil beberapa fitur yang paling berpengaruh pada satu prediksi."""
+    """Ambil lima kontribusi Tree SHAP terbesar menggunakan pred_contribs XGBoost."""
     try:
-        values = get_explainer().shap_values(features)
-        if isinstance(values, list):
-            array = np.asarray(values[prediction])
+        if "clf" not in PIPELINE.named_steps:
+            return []
+        booster = PIPELINE.named_steps["clf"].get_booster()
+        values = booster.predict(DMatrix(features), pred_contribs=True)
+        array = np.asarray(values)
+        if array.ndim == 2:
+            impacts = array[0, : len(features.columns)]
         else:
-            array = np.asarray(values)
-            if array.ndim == 3:
-                array = array[0, :, prediction] if array.shape[-1] == 2 else array[0, :, 0]
-            elif array.ndim == 2 and array.shape[0] == 2:
-                array = array[prediction]
-
-        array = np.asarray(array).reshape(-1)
-        impacts = array[: len(features.columns)]
+            impacts = array[: len(features.columns)]
         row = features.iloc[0]
 
         items = [
