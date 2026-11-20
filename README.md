@@ -10,7 +10,7 @@ Antarmuka web dibuat dengan Flask.
 - Fitur: 16 atribut leksikal/struktural yang dihitung dari string URL. Fungsi yang sama dipakai saat training dan saat pengguna mengetik URL di web.
 - Model yang dibandingkan: Random Forest, XGBoost, SVM. Model terpilih: **XGBoost**.
 - Augmentasi: 27 URL legitimate terverifikasi ditambahkan hanya ke train/train_val; `https://career.astra.co.id/` kini diprediksi legitimate (99,90%).
-- Penjelasan: kontribusi Tree SHAP dari `pred_contribs` XGBoost, menampilkan lima fitur terbesar; analisis global memakai SHAP `TreeExplainer`.
+- Penjelasan: kontribusi Tree SHAP (setara `pred_contribs`) dihitung langsung dari `models/xgb_booster.json`, menampilkan lima fitur terbesar; analisis global memakai SHAP `TreeExplainer`.
 - Web: tidak pernah mengunjungi URL yang dimasukkan pengguna; hanya menganalisis stringnya.
 
 ## struktur folder

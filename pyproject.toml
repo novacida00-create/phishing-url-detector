@@ -5,12 +5,7 @@ description = "Aplikasi deteksi URL phishing dengan model XGBoost dan SHAP"
 requires-python = ">=3.12"
 dependencies = [
     "Flask==3.0.3",
-    "joblib==1.5.2",
-    "numpy==2.5.3",
-    "pandas==2.2.3",
-    "scikit-learn==1.7.2",
     "waitress==3.0.2",
-    "xgboost==3.4.1",
 ]
 
 [tool.vercel]

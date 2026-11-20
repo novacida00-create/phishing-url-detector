@@ -259,6 +259,10 @@ def main():
         "label_map": {0: "Phishing", 1: "Legitimate"},
     }
     joblib.dump(artifact, MODEL_DIR / "phishing_pipeline.joblib")
+    if best_name == "XGBoost":
+        final_model.named_steps["clf"].get_booster().save_model(
+            str(MODEL_DIR / "xgb_booster.json")
+        )
 
     processed = X.copy()
     processed["ClassLabel"] = y
@@ -312,6 +316,8 @@ def main():
     pd.DataFrame(rows).to_csv(MODEL_DIR / "metrics.csv", index=False)
 
     print("\nSelesai. Model disimpan di", MODEL_DIR / "phishing_pipeline.joblib")
+    if best_name == "XGBoost":
+        print("Model untuk runtime web disimpan di", MODEL_DIR / "xgb_booster.json")
 
 
 if __name__ == "__main__":

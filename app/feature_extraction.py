@@ -12,8 +12,6 @@ import re
 from collections import Counter
 from urllib.parse import urlparse
 
-import pandas as pd
-
 MAX_URL_LENGTH = 2048
 
 POPULAR_TLD = {"com", "org", "net", "edu", "gov"}
@@ -114,6 +112,8 @@ def extract_features(url):
 
 def extract_feature_dataframe(urls):
     """Ekstraksi banyak URL sekaligus dengan urutan kolom yang tetap."""
+    import pandas as pd
+
     rows = [extract_features(url) for url in urls]
     return pd.DataFrame(rows, columns=FEATURE_NAMES)
 
